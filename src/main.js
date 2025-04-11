@@ -1,6 +1,15 @@
 // Pinata API keys (replace with your own)
-const PINATA_API_KEY = 'your_pinata_api_key';
-const PINATA_SECRET_API_KEY = 'your_pinata_secret_api_key';
+
+
+const PINATA_API_KEY = process.env.PINATA_API_KEY;
+const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY;
+
+if (!PINATA_API_KEY || !PINATA_SECRET_API_KEY) {
+  throw new Error('Pinata API keys are not defined');
+}
+
+console.log('Pinata API Key:', PINATA_API_KEY);
+
 
 // Initialize IPFS
 const ipfs = window.IpfsHttpClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' });
