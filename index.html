@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spanniche - Discover Your Niche from A to Z</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Toastify CSS for notifications -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+  <!-- Yjs and IPFS libraries -->
+  <script src="https://unpkg.com/ipfs/dist/index.min.js"></script>
+  <script src="https://unpkg.com/yjs/dist/yjs.umd.js"></script>
+  <script src="https://unpkg.com/y-ipfs/dist/y-ipfs.umd.js"></script>
+  <script src="https://unpkg.com/@pinata/sdk/dist/pinata-sdk.js"></script>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #ecf0f1;
+      --success: #27ae60;
+      --danger: #c0392b;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem 0;
+      text-align: center;
+    }
+    .logo {
+      margin: 0;
+      font-size: 2rem;
+    }
+    .tagline {
+      margin: 5px 0;
+      font-style: italic;
+    }
+    .search-container {
+      position: relative;
+      margin: 20px 0;
+    }
+    .search-bar {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .search-btn {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      padding: 0 15px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+    }
+    .suggestions {
+      position: absolute;
+      background: white;
+      border: 1px solid #ddd;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+    .suggestion-item {
+      padding: 10px;
+      cursor: pointer;
+    }
+    .suggestion-item:hover {
+      background: #f0f0f0;
+    }
+    .saved-btn {
+      padding: 10px 20px;
+      background: var(--success);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .ad-banner {
+      background: #ddd;
+      padding: 20px;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .alphabet-nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .alphabet-link {
+      padding: 8px 12px;
+      background: var(--secondary);
+      color: var(--primary);
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .alphabet-link:hover {
+      background: var(--primary);
+      color: white;
+    }
+    .sort-container {
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .niche-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .niche-card {
+      background: white;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .niche-card:hover {
+      transform: translateY(-5px);
+    }
+    .niche-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .niche-title {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    .niche-category {
+      background: var(--primary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.8rem;
+    }
+    .niche-description {
+      margin: 10px 0 0;
+      color: #666;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 5px;
+      width: 90%;
+      max-width: 500px;
+      position: relative;
+    }
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .saved-niche-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .saved-niche-item span button {
+      margin-left: 10px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .edit-niche {
+      background: var(--primary);
+      color: white;
+    }
+    .delete-niche {
+      background: var(--danger);
+      color: white;
+    }
+    .saved-note {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .loader {
+      display: none;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation: bounce 0.5s infinite alternate;
+    }
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes bounce {
+      to {
+        transform: translateY(-10px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1 class="logo">Spanniche</h1>
+      <p class="tagline">Discover Your Niche from A to Z</p>
+      <div class="search-container">
+        <input type="text" class="search-bar" placeholder="Search for niches (e.g. 'vintage cameras', 'aquascaping')" />
+        <button class="search-btn"><i class="fas fa-search"></i></button>
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+      <button class="saved-btn" id="show-saved-btn">Show Saved Niches</button>
+    </div>
+  </header>
+  <div class="container">
+    <div class="ad-banner">Advertisement</div>
+  </div>
+  <div class="container">
+    <div class="alphabet-nav" id="alphabet-nav">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+  <div class="container">
+    <div class="sort-container">
+      <label for="sort-select">Sort by:</label>
+      <select id="sort-select">
+        <option value="default">Default</option>
+        <option value="popularity">Popularity</option>
+        <option value="longevity">Longevity</option>
+        <option value="novelty">Novelty</option>
+        <option value="profitability">Profitability</option>
+        <option value="accessibility">Accessibility</option>
+      </select>
+    </div>
+  </div>
+  <div class="container">
+    <div class="loader" id="loader">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div id="default-categories" class="niche-grid"></div>
+    <div id="search-results" class="niche-grid"></div>
+  </div>
+  <div class="modal" id="niche-modal">
+    <div class="modal-content">
+      <span class="close-modal">×</span>
+      <h2 id="modal-niche-title">Niche Title</h2>
+      <p id="modal-niche-category" style="color: var(--primary); font-weight: bold; margin-bottom: 15px;">Category</p>
+      <p id="modal-niche-description" style="margin-bottom: 20px;">Niche description goes here.</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div>
+          <h4 style="margin-bottom: 5px;">Likes</h4>
+          <p id="modal-niche-likes" style="font-size: 1.2rem; font-weight: bold;">0</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom: 5px;">Dislikes</h4>
+          <p id="modal-niche-dislikes" style="font-size: 1.2rem; font-weight: bold;">0</p>
+        </div>
+      </div>
+      <button style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 5px; font-size: 1.1rem; cursor: pointer; margin-top: 10px;" id="save-niche-btn">Save to My Niches</button>
+      <button style="padding: 10px; background: var(--success); color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;" id="like-niche-btn">Like</button>
+      <button style="padding: 10px; background: var(--danger); color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; margin-left: 10px;" id="dislike-niche-btn">Dislike</button>
+    </div>
+  </div>
+  <div class="modal" id="saved-modal">
+    <div class="modal-content">
+      <span class="close-modal" id="close-saved-modal">×</span>
+      <h2>Saved Niches</h2>
+      <button style="padding: 10px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 10px;" id="add-new-niche-btn">Add New Niche</button>
+      <div class="saved-sort-container">
+        <label for="saved-sort-select">Sort your list by:</label>
+        <select id="saved-sort-select">
+          <option value="default">Default (by addition order)</option>
+          <option value="popularity">Popularity (likes - dislikes)</option>
+          <option value="longevity">Longevity (time in list)</option>
+          <option value="novelty">Novelty (earlier adds)</option>
+          <option value="profitability">Profitability (time before deletion)</option>
+          <option value="accessibility">Accessibility (click count)</option>
+        </select>
+      </div>
+      <div id="saved-niches-list" style="margin-top: 1rem;"></div>
+      <div class="saved-note">
+        <p><strong>Ranking Formulas Explanation:</strong></p>
+        <ul>
+          <li><em>Longevity:</em> Time elapsed since added to your list (ms).</li>
+          <li><em>Novelty:</em> Earlier added niches rank higher.</li>
+          <li><em>Profitability:</em> Time between addition and deletion, or since addition if not deleted (ms).</li>
+          <li><em>Accessibility:</em> Number of times clicked to view details.</li>
+          <li><em>Popularity:</em> Likes minus dislikes based on shared interactions.</li>
+        </ul>
+        <p>All metrics are computed locally from your interactions, with popularity from shared state.</p>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="ad-banner">Advertisement</div>
+  </div>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
